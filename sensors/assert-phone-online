@@ -1,0 +1,3 @@
+#!/bin/sh
+grep -i nokia-n900 /var/lib/misc/dnsmasq.leases|cut -f3 -d' '|xargs ping -c1|grep -q '1 received'
+exit $?
