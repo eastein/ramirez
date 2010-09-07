@@ -16,13 +16,13 @@ class Ramirez(object) :
 		self.config = config
 		self.pretend = pretend
 		self.sensors = []
+		self.readConfiguration()
 
 	def readConfiguration(self) :
 		self.configuration = ConfigParser.ConfigParser()
 		self.configuration.read(self.config)
 
 	def doEverything(self) :
-		self.readConfiguration()
 		for name in self.configuration.sections() :
 			obj = self.configuration.get(name, 'object')
 			if obj == 'sensor' :

@@ -2,6 +2,11 @@ import os
 import os.path
 import time
 
+"""
+This module is for base classes useful for acquiring sensor data of boolean or numeric value.
+It does not cover specific sensor types or any history recording or history lookup functionality.
+"""
+
 class Sensor(object) :
 	def __init__(self, name) :
 		self.name = name
