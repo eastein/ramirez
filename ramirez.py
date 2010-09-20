@@ -17,22 +17,35 @@ class Ramirez(object) :
 		self.pretend = pretend
 		self.sensors = []
 		self.readConfiguration()
+		self.actOnConfiguration()
+		self.data_dir = None
 
 	def readConfiguration(self) :
 		self.configuration = ConfigParser.ConfigParser()
 		self.configuration.read(self.config)
 
-	def doEverything(self) :
+	def actOnConfiguration(self) :
 		for name in self.configuration.sections() :
-			obj = self.configuration.get(name, 'object')
-			if obj == 'sensor' :
+			names = name.split('.')
+			if names[0] == 'storage' :
+				try :
+					data_dir = self.configuration.get(name, 'dir')
+				except :
+					raise RuntimeError("Config section storage must include a dir option.")
+
+				if not os.path.isdir(data_dir) :
+					raise RuntimeError("storage.dir = %s is not a directory." % data_dir)
+
+				self.data_dir = data_dir
+			elif names[0] == 'sensor' :
+				sensor_name = names[1]
 				typ = self.configuration.get(name, 'type')
 				source = self.configuration.get(name, 'source')
 				if typ not in sensor.types :
-					raise RuntimeError("Unknown sensor type=%s for sensor %s" % (typ, name))
-				self.sensors.append(sensor.types[typ](name=name, script=os.path.join(SENSORS_DIR, source)))
+					raise RuntimeError("Unknown sensor type=%s for sensor %s" % (typ, sensor_name))
+				self.sensors.append(sensor.types[typ](name=sensor_name, script=os.path.join(SENSORS_DIR, source)))
 			else :
-				raise RuntimeError("Unknown object=%s for %s" % (obj, name))
+				raise RuntimeError("Unknown config section %s." % name)
 	
 	def sampleAll(self) :
 		for sensor in self.sensors :
@@ -59,6 +72,4 @@ def parse(args) :
 
 if __name__ == '__main__' :
 	ramirez = parse(sys.argv[1:])
-
-	ramirez.doEverything()
 	ramirez.sampleAll()

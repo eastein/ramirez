@@ -22,7 +22,7 @@ class Measurement(object) :
 	def __repr__(self) :
 		return 'Measurement<value=%d, when=%s UTC, sample_err_allowed=%d, tick_err_allowed_ms=%d>' % (self.value, time.asctime(time.gmtime(self.when_ms / 1000)), self.sample_err_allowed, self.tick_err_allowed_ms)
 
-class Sensor(object) :
+class Store(object) :
 	'''
 	Sensor database layer.  A sensor here does not know how to measure, but can record.
 	A sensor has a type, and that is all.
