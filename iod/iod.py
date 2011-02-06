@@ -39,4 +39,5 @@ if __name__ == '__main__' :
 
 	import iod_core
 	iod = iod_core.IOD(serial, port)
-	iod.shutdown()
+	iod.serve_forever()
+	#iod.shutdown()
