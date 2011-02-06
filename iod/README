@@ -1,0 +1,36 @@
+==== iod - I/O Daemon ====
+
+iod is the Ramirez component that interacts with the DyIO device and offers its sensor services to network clients.  This allows
+the DyIO connected sensors to be located anywhere, not necessarily plugged directly into the server running Ramirez.  Doing this
+also frees the rest of the system from requiring Jython - as for the time being, the only DyIO API that is easily usable is
+the NR-SDK 3.7.x, which is available only as a Java .jar.  This is true as of 2/6/2011, and may change in the future.
+
+==== Running ====
+
+If you are OK with default options of TCP port and serial port, you may invoke with just a path for CPython's built-in libraries
+and the NR-SDK's jar path.  For example, this may work (assuming that you correct paths):
+
+./iod.py --nrsdk=/home/eastein/nr-sdk/nrsdk-0.3.7.a-jar-with-dependencies.jar --libpath=/usr/lib/python2.5
+
+==== Communications Protocol ====
+
+By default, iod listens on TCP port 7823 and accepts commands in msgpack format, messages prefixed by unsigned short
+network-ordered numbers of bytes of the msgpack message.  The exact protocol is not documented; read the source if you would like
+to understand the communications layer in more detail.
+
+=== Commands
+
+== RESET
+
+The RESET command will wait until current commands are ended, disconnect the DyIO from the serial link, reconnect, and initialize
+a fresh connection.
+
+== SETUP
+
+The SETUP command requires that a fresh connection with no configuration is the current state of iod.  SETUP argument is a list of
+tuples of (CHANNELID, TYPE).
+
+== SAMPLE
+
+The SAMPLE command requires that all the channels requested are currently set up.  SAMPLE argument is a list of channel IDs.
+The response is a dictionary of CHANNELID -> READING.
