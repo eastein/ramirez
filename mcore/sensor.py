@@ -3,7 +3,7 @@ import os.path
 import time
 
 """
-This module is for base classes useful for acquiring sensor data of boolean or numeric value.
+This module is for classes useful for acquiring sensor data of boolean or numeric value.
 It does not cover specific sensor types or any history recording or history lookup functionality.
 """
 
@@ -12,6 +12,9 @@ class Sensor(object) :
 		self.name = name
 
 class BooleanSensor(Sensor) :
+	pass
+
+class BooleanShellSensor(Sensor) :
 	def __init__(self, name, script) :
 		if not os.path.exists(script) :
 			raise RuntimeError("script %s does not exist." % script)
@@ -33,5 +36,5 @@ class BooleanSensor(Sensor) :
 			return time.time() - begin, status == 0
 
 types = {
-	'boolean' : BooleanSensor
+	'boolean-shell' : BooleanShellSensor
 }

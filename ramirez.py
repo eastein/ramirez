@@ -5,9 +5,7 @@ import sys
 import os.path
 import ConfigParser
 
-import sqlalchemy
-
-from ramirezlib import sensor
+import mcore.sensor
 
 SENSORS_DIR = 'sensors'
 
@@ -41,9 +39,9 @@ class Ramirez(object) :
 				sensor_name = names[1]
 				typ = self.configuration.get(name, 'type')
 				source = self.configuration.get(name, 'source')
-				if typ not in sensor.types :
-					raise RuntimeError("Unknown sensor type=%s for sensor %s" % (typ, sensor_name))
-				self.sensors.append(sensor.types[typ](name=sensor_name, script=os.path.join(SENSORS_DIR, source)))
+				if typ not in mcore.sensor.types :
+					raise RuntimeError("Unknown sensor type=%s for sensor %s" % (typ, name))
+				self.sensors.append(mcore.sensor.types[typ](name=name, script=os.path.join(SENSORS_DIR, source)))
 			else :
 				raise RuntimeError("Unknown config section %s." % name)
 	
