@@ -16,7 +16,7 @@ def request(msg) :
 
 if __name__ == '__main__' :
 	request({iod_proto.SLOT_OP : iod_proto.OP_RESET})
-	request({iod_proto.SLOT_OP : iod_proto.OP_SETUP, iod_proto.SLOT_ARG : [[0, iod_proto.CHANNELTYPE_DIGITAL]]})
+	request({iod_proto.SLOT_OP : iod_proto.OP_SETUP, iod_proto.SLOT_ARG : [[0, iod_proto.CHANNELTYPE_DIGITAL], [23, iod_proto.CHANNELTYPE_DIGITAL]]})
 	while True :
-		request({iod_proto.SLOT_OP : iod_proto.OP_SAMPLE, iod_proto.SLOT_ARG : [0]})
+		request({iod_proto.SLOT_OP : iod_proto.OP_SAMPLE, iod_proto.SLOT_ARG : [0, 23]})
 		time.sleep(1)
