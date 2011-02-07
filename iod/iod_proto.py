@@ -26,6 +26,7 @@ def write_message(sock, msg) :
 		msg = msg[sent:]
 		rem -= sent
 
+# TODO fix spin on failure to read or silent connection drop, wastes cpu
 def read_bytes(sock, b) :
 	rem = b
 	bytes = ''

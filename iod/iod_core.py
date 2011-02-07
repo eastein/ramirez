@@ -53,6 +53,7 @@ class IOD(SocketServer.TCPServer) :
 		if use_lock :
 			self.dyio_lock.acquire()
 		try :
+			# TODO determine what subset of these calls is really required
 			self.dyio.removeAllDyIOEventListeners()
 			self.dyio.stopHeartBeat()
 			self.dyio.disconnect()
