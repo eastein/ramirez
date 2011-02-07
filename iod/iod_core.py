@@ -1,7 +1,10 @@
 import struct
 import simplejson as json
-
+import struct
+import pprint
 import SocketServer
+
+import iod_proto
 
 from com.neuronrobotics.sdk.dyio import DyIO
 from com.neuronrobotics.sdk.dyio.peripherals import DigitalInputChannel
@@ -9,9 +12,10 @@ from com.neuronrobotics.sdk.serial import SerialConnection
 
 class IODHandler(SocketServer.BaseRequestHandler) :
 	def handle(self) :
-		self.data = self.request.recv(10)
-		print 'got req: %s' % self.data
-		self.request.send('hi')
+		request = iod_proto.read_message(self.request)
+		print 'got request'
+		pprint.pprint(request)
+		iod_proto.write_message(self.request, {'status' : 'ok'})
 
 class IOD(SocketServer.TCPServer) :
 	def __init__(self, serial, port) :

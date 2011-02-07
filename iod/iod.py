@@ -33,10 +33,6 @@ if __name__ == '__main__' :
 	for p in libpath.split(':') :
 		sys.path.append(p)
 
-	from com.neuronrobotics.sdk.dyio import DyIO
-	from com.neuronrobotics.sdk.dyio.peripherals import DigitalInputChannel
-	from com.neuronrobotics.sdk.serial import SerialConnection
-
 	import iod_core
 	iod = iod_core.IOD(serial, port)
 	iod.serve_forever()
