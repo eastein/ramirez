@@ -3,6 +3,7 @@ import socket
 import struct
 import pprint
 import iod_proto
+import time
 
 def request(msg) :
 	tcp_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -16,3 +17,6 @@ def request(msg) :
 if __name__ == '__main__' :
 	request({iod_proto.SLOT_OP : iod_proto.OP_RESET})
 	request({iod_proto.SLOT_OP : iod_proto.OP_SETUP, iod_proto.SLOT_ARG : [[0, iod_proto.CHANNELTYPE_DIGITAL]]})
+	while True :
+		request({iod_proto.SLOT_OP : iod_proto.OP_SAMPLE, iod_proto.SLOT_ARG : [0]})
+		time.sleep(1)

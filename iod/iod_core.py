@@ -14,24 +14,19 @@ from com.neuronrobotics.sdk.serial import SerialConnection
 class IODHandler(SocketServer.BaseRequestHandler) :
 	def handle(self) :
 		request = iod_proto.read_message(self.request)
-		print 'got request'
-		pprint.pprint(request)
 
 		msg = {iod_proto.SLOT_STATUS : iod_proto.STATUS_FAIL}
 		try :
 			if request[iod_proto.SLOT_OP] == iod_proto.OP_RESET :
-				print 'got: reset'
-				self.server.op_reset()
-				print 'done: reset'
+				msg = self.server.op_reset()
 			elif request[iod_proto.SLOT_OP] == iod_proto.OP_SETUP :
-				print 'got: setup'
-				self.server.op_setup(request[iod_proto.SLOT_ARG])
-				print 'done: setup'
+				msg = self.server.op_setup(request[iod_proto.SLOT_ARG])
+			elif request[iod_proto.SLOT_OP] == iod_proto.OP_SAMPLE :
+				msg = self.server.op_sample(request[iod_proto.SLOT_ARG])
 			else :
 				print 'unk op: %d' % request[iod_proto.SLOT_OP]
 		except :
 			print 'caught exception in handler'
-			raise
 		iod_proto.write_message(self.request, msg)
 
 class IOD(SocketServer.TCPServer) :
@@ -73,6 +68,8 @@ class IOD(SocketServer.TCPServer) :
 			except :
 				pass
 			self.startup_dyio(use_lock=False)
+
+			return {iod_proto.SLOT_STATUS : iod_proto.STATUS_OK}
 		finally :
 			self.dyio_lock.release()
 
@@ -80,6 +77,7 @@ class IOD(SocketServer.TCPServer) :
 		self.dyio_lock.acquire()
 		try :
 			if self.setup is not False :
+				# TODO define code to include error type codes, apply it to all instances of STATUS_FAIL
 				return {iod_proto.SLOT_STATUS : iod_proto.STATUS_FAIL}
 
 			setup = set()
@@ -88,5 +86,27 @@ class IOD(SocketServer.TCPServer) :
 					return {iod_proto.SLOT_STATUS : iod_proto.STATUS_FAIL}
 				# TODO do not ignore channeltype
 				self.channels[channel] = DigitalInputChannel(self.dyio.getChannel(channel))
+			self.setup = True
+
+			return {iod_proto.SLOT_STATUS : iod_proto.STATUS_OK}
+		finally :
+			self.dyio_lock.release()
+
+	def op_sample(self, arg) :
+		self.dyio_lock.acquire()
+		try :
+			if not self.setup :
+				return {iod_proto.SLOT_STATUS : iod_proto.STATUS_FAIL}
+			for channelid in arg :
+				# TODO keyerror handle
+				if self.channels[channelid] is None :
+					return {iod_proto.SLOT_STATUS : iod_proto.STATUS_FAIL}
+
+			samples = []
+			for channelid in arg :
+				# TODO time of sample collection in the packet?
+				samples.append((channelid, self.channels[channelid].isHigh()))
+
+			return {iod_proto.SLOT_STATUS : iod_proto.STATUS_OK, iod_proto.SLOT_DATA : samples}
 		finally :
 			self.dyio_lock.release()

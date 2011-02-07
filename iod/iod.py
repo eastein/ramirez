@@ -36,4 +36,6 @@ if __name__ == '__main__' :
 	import iod_core
 	iod = iod_core.IOD(serial, port)
 	iod.serve_forever()
-	#iod.shutdown()
+	# TODO enable a way to cleanly shut down, on SIGTERM probably. that's what people do.
+	#iod.shutdown_dyio()
+	# shut down the tcpserver somehow too
