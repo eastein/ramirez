@@ -33,9 +33,9 @@ a fresh connection.
 == SETUP
 
 The SETUP command requires that a fresh connection with no configuration is the current state of iod.  SETUP argument is a list of
-tuples of (CHANNELID, TYPE).
+lists of (CHANNELID, CHANNELTYPE).
 
 == SAMPLE
 
 The SAMPLE command requires that all the channels requested are currently set up.  SAMPLE argument is a list of channel IDs.
-The response is a dictionary of CHANNELID -> READING.
+The response is a list of lists of CHANNELID, DATA.

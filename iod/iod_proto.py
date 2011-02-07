@@ -1,6 +1,21 @@
 import simplejson as json
 import struct
 
+SLOT_OP = 0
+SLOT_STATUS = 1
+SLOT_ARG = 2
+SLOT_DATA = 3
+
+OP_RESET = 0
+OP_SETUP = 1
+OP_SAMPLE = 2
+
+STATUS_OK = 0
+STATUS_FAIL = 1
+
+CHANNELTYPE_DIGITAL = 0
+CHANNELTYPE_ANALOG = 1
+
 def write_message(sock, msg) :
 	json_m = json.dumps(msg)
 	bts = len(json_m)
@@ -22,4 +37,8 @@ def read_bytes(sock, b) :
 
 def read_message(sock) :
 	bts, = struct.unpack('!H', read_bytes(sock, 2))
-	return json.loads(read_bytes(sock, bts))
+	preproc_message = json.loads(read_bytes(sock, bts))
+	message = {}
+	for k in preproc_message.keys() :
+		message[int(k)] = preproc_message[k]
+	return message
