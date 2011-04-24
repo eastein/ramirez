@@ -75,10 +75,10 @@ class Sensor(object) :
 		self.conn.commit()
 
 	def read(self, time_ms) :
-		sample = self.cursor.execute('select start_ms,end_ms,tick_ms,tick_err_allowed_ms,sample,sample_err_allowed from samples where start_ms=(select max(start_ms) from samples where start_ms <= ?)', (time_ms,)).fetchall()[0]
-
+		sample = self.cursor.execute('select start_ms,end_ms,tick_ms,tick_err_allowed_ms,sample,sample_err_allowed from samples where start_ms=(select max(start_ms) from samples where start_ms <= ?)', (time_ms,)).fetchall()
 		if not sample :
 			return None
+		sample = sample[0]
 
 		start_ms,end_ms,tick_ms,tick_err_allowed_ms,sample,sample_err_allowed = sample
 
