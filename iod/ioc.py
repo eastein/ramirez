@@ -31,3 +31,19 @@ if __name__ == '__main__' :
 			val = not val
 			request({iod_proto.SLOT_OP : iod_proto.OP_SET, iod_proto.SLOT_ARG : [[23, val]]})
 			time.sleep(2)
+	elif sys.argv[1] == 'buzz' :
+		request({iod_proto.SLOT_OP : iod_proto.OP_SETUP, iod_proto.SLOT_ARG : [[23, iod_proto.CHANNELTYPE_DIGITALOUT]]})
+		request({iod_proto.SLOT_OP : iod_proto.OP_SET, iod_proto.SLOT_ARG : [[23, False]]})
+
+		def set_lock_pin(v) :
+			request({iod_proto.SLOT_OP : iod_proto.OP_SET, iod_proto.SLOT_ARG : [[23, v]]})
+
+		while True :
+			line = sys.stdin.readline().split("\n")[0]
+			if line == 'buzz' :
+				print 'unlocking door'
+				set_lock_pin(True)
+				time.sleep(1)
+				set_lock_pin(False)
+			else :
+				print 'unknown command %s' % line

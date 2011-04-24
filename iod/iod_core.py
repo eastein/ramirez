@@ -12,6 +12,8 @@ from com.neuronrobotics.sdk.dyio.peripherals import DigitalInputChannel
 from com.neuronrobotics.sdk.dyio.peripherals import DigitalOutputChannel
 from com.neuronrobotics.sdk.serial import SerialConnection
 
+# TODO handle com.neuronrobotics.sdk.common.NoConnectionAvailableException and re-setup with last preferences and output levels? Unsure.
+
 class IODHandler(SocketServer.BaseRequestHandler) :
 	def handle(self) :
 		request = iod_proto.read_message(self.request)
@@ -125,6 +127,7 @@ class IOD(SocketServer.TCPServer) :
 				return {iod_proto.SLOT_STATUS : iod_proto.STATUS_FAIL}
 			for channelid in arg :
 				# TODO keyerror handle
+				# TODO check that all are digital in, they sorta have to be
 				if self.channels[channelid] is None :
 					return {iod_proto.SLOT_STATUS : iod_proto.STATUS_FAIL}
 
