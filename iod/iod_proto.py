@@ -9,12 +9,14 @@ SLOT_DATA = 3
 OP_RESET = 0
 OP_SETUP = 1
 OP_SAMPLE = 2
+OP_SET = 3
 
 STATUS_OK = 0
 STATUS_FAIL = 1
 
 CHANNELTYPE_DIGITAL = 0
 CHANNELTYPE_ANALOG = 1
+CHANNELTYPE_DIGITALOUT = 2
 
 def write_message(sock, msg) :
 	json_m = json.dumps(msg)

@@ -9,6 +9,7 @@ import iod_proto
 
 from com.neuronrobotics.sdk.dyio import DyIO
 from com.neuronrobotics.sdk.dyio.peripherals import DigitalInputChannel
+from com.neuronrobotics.sdk.dyio.peripherals import DigitalOutputChannel
 from com.neuronrobotics.sdk.serial import SerialConnection
 
 class IODHandler(SocketServer.BaseRequestHandler) :
@@ -23,6 +24,8 @@ class IODHandler(SocketServer.BaseRequestHandler) :
 				msg = self.server.op_setup(request[iod_proto.SLOT_ARG])
 			elif request[iod_proto.SLOT_OP] == iod_proto.OP_SAMPLE :
 				msg = self.server.op_sample(request[iod_proto.SLOT_ARG])
+			elif request[iod_proto.SLOT_OP] == iod_proto.OP_SET :
+				msg = self.server.op_set(request[iod_proto.SLOT_ARG])
 			else :
 				print 'unk op: %d' % request[iod_proto.SLOT_OP]
 		except :
@@ -85,9 +88,31 @@ class IOD(SocketServer.TCPServer) :
 			for channel, channeltype in arg :
 				if channel in setup :
 					return {iod_proto.SLOT_STATUS : iod_proto.STATUS_FAIL}
-				# TODO do not ignore channeltype
-				self.channels[channel] = DigitalInputChannel(self.dyio.getChannel(channel))
+				
+				if channeltype == iod_proto.CHANNELTYPE_DIGITAL :
+					self.channels[channel] = DigitalInputChannel(self.dyio.getChannel(channel))
+				elif channeltype == iod_proto.CHANNELTYPE_ANALOG :
+					return {iod_proto.SLOT_STATUS : iod_proto.STATUS_FAIL}
+				elif channeltype == iod_proto.CHANNELTYPE_DIGITALOUT :
+					self.channels[channel] = DigitalOutputChannel(self.dyio.getChannel(channel))
+			
 			self.setup = True
+
+			return {iod_proto.SLOT_STATUS : iod_proto.STATUS_OK}
+		finally :
+			self.dyio_lock.release()
+
+	def op_set(self, arg) :
+		self.dyio_lock.acquire()
+		try :
+			if not self.setup :
+				return {iod_proto.SLOT_STATUS : iod_proto.STATUS_FAIL}
+			for channel, value in arg :
+				value = bool(value)
+				print 'attempting to set %s = %s' % (channel, str(value))
+				
+				# TODO check that all are digital out, they sorta have to be
+				self.channels[channel].setHigh(value)
 
 			return {iod_proto.SLOT_STATUS : iod_proto.STATUS_OK}
 		finally :
