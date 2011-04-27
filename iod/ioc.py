@@ -5,6 +5,7 @@ import pprint
 import iod_proto
 import time
 import sys
+import tty
 
 def request(msg) :
 	tcp_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -32,6 +33,7 @@ if __name__ == '__main__' :
 			request({iod_proto.SLOT_OP : iod_proto.OP_SET, iod_proto.SLOT_ARG : [[23, val]]})
 			time.sleep(2)
 	elif sys.argv[1] == 'buzz' :
+		tty.setraw(sys.stdin.fileno())
 		request({iod_proto.SLOT_OP : iod_proto.OP_SETUP, iod_proto.SLOT_ARG : [[23, iod_proto.CHANNELTYPE_DIGITALOUT]]})
 		request({iod_proto.SLOT_OP : iod_proto.OP_SET, iod_proto.SLOT_ARG : [[23, False]]})
 
@@ -39,11 +41,14 @@ if __name__ == '__main__' :
 			request({iod_proto.SLOT_OP : iod_proto.OP_SET, iod_proto.SLOT_ARG : [[23, v]]})
 
 		while True :
-			line = sys.stdin.readline().split("\n")[0]
-			if line == 'buzz' :
+			c = sys.stdin.read(1)
+			if c in ['b', '\t'] :
 				print 'unlocking door'
 				set_lock_pin(True)
 				time.sleep(1)
 				set_lock_pin(False)
+			elif c == 'q' :
+				print 'quit'
+				sys.exit(0)
 			else :
-				print 'unknown command %s' % line
+				print 'unknown command %s' % c
