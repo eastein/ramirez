@@ -6,6 +6,7 @@ License: GPL2/GPL3, at your option.  For details see LICENSE.
 '''
 
 import time
+import concurrent.futures as futures
 import pysqlite2.dbapi2 as sqlite
 
 def fupack(t) :
@@ -29,12 +30,23 @@ class Trace(object) :
 	A sensor has a type, and that is all.
 	'''
 
-	def __init__(self, name, dbfilename, tick_ms, tick_err_allowed_ms, sample_err_allowed) :
+	def __init__(self, name, dbfilename, tick_ms, tick_err_allowed_ms, sample_err_allowed, executor=None) :
 		self.name = name
 		self.tick_ms = tick_ms
 		self.tick_err_allowed_ms = tick_err_allowed_ms
 		self.sample_err_allowed = sample_err_allowed
+		if executor :
+			self.executor = executor
+		else :
+			self.executor = futures.ThreadPoolExecutor(max_workers=1)
 
+		self._setup = self.executor.submit(self._connection_setup, dbfilename)
+
+	def waitsetup(self) :
+		if not self._setup.done() :
+			futures.wait([self._setup])
+
+	def _connection_setup(self, dbfilename) :
 		self.conn = sqlite.connect(dbfilename)
 		self.cursor = self.conn.cursor()
 
@@ -53,6 +65,10 @@ class Trace(object) :
 		self.cursor.execute('create index samples_end_ms on samples(end_ms)')
 
 	def write(self, value) :
+		self.waitsetup()
+		return self.executor.submit(self._write, value)
+
+	def _write(self, value) :
 		"""
 		Must tolerate tick_error_tolerate ms of drift.
 		"""
@@ -83,6 +99,10 @@ class Trace(object) :
 		self.conn.commit()
 
 	def read(self, time_ms) :
+		self.waitsetup()
+		return self.executor.submit(self._read, time_ms)
+
+	def _read(self, time_ms) :
 		sample = self.cursor.execute('select start_ms,end_ms,tick_ms,tick_err_allowed_ms,sample,sample_err_allowed from samples where start_ms=(select max(start_ms) from samples where start_ms <= ?)', (time_ms,)).fetchall()
 		if not sample :
 			return None
