@@ -20,9 +20,9 @@ if __name__ == '__main__' :
 	request({iod_proto.SLOT_OP : iod_proto.OP_RESET})
 
 	if sys.argv[1] == 'in' :
-		request({iod_proto.SLOT_OP : iod_proto.OP_SETUP, iod_proto.SLOT_ARG : [[0, iod_proto.CHANNELTYPE_DIGITAL], [23, iod_proto.CHANNELTYPE_DIGITAL]]})
+		request({iod_proto.SLOT_OP : iod_proto.OP_SETUP, iod_proto.SLOT_ARG : [[0, iod_proto.CHANNELTYPE_DIGITAL], [1, iod_proto.CHANNELTYPE_DIGITAL]]})
 		while True :
-			request({iod_proto.SLOT_OP : iod_proto.OP_SAMPLE, iod_proto.SLOT_ARG : [0, 23]})
+			request({iod_proto.SLOT_OP : iod_proto.OP_SAMPLE, iod_proto.SLOT_ARG : [0, 1]})
 			time.sleep(1)
 	elif sys.argv[1] == 'out' :
 		request({iod_proto.SLOT_OP : iod_proto.OP_SETUP, iod_proto.SLOT_ARG : [[23, iod_proto.CHANNELTYPE_DIGITALOUT]]})
