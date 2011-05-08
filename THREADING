@@ -1,0 +1,25 @@
+# Threads
+
+## Main loop
+
+Handles startup, creates traces and sensors and outputs, creates multiplexer channels, creates event handler objects, creates threadpools for handling sensor readings and event actions.  Does no actual reading or reacting or writing itself.  Handles timers.
+
+## Event threadpool
+
+Handler functions gotta run somehow.  Potentially has priorties here.
+
+## Sensor threadpool
+
+Sensor reads are multithreaded.
+
+## Trace pools
+
+Each trace keeps its own tiny pool because that's how SQLite likes to operate, and one doesn't argue with SQLite.
+
+# Futures
+
+Items that read and write and need measurements do this by working with futures.  All threadpools (probably) are from concurrent.futures module, so this is natural.  If a result is expected, then a future is used to get it.  I may need to do something else for the event handlers, as I believe their main method of reaction is to either do actions themselves (thus not using the return) or to create new events for other handlers to handle (thus not using the return).
+
+# Event Handling Shutdown
+
+If anything other than timer events are still active, we've got a problem.  I may end up using someone else's event library if that works out well requirements wise; perhaps libev's python bindings.  Sometimes an action must be taken reliably, and potentially the work pool could get behind.
