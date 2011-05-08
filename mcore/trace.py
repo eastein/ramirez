@@ -6,15 +6,13 @@ License: GPL2/GPL3, at your option.  For details see LICENSE.
 '''
 
 import time
+import events
 import concurrent.futures as futures
 import pysqlite2.dbapi2 as sqlite
 
 def fupack(t) :
 	(a, ) = t
 	return a
-
-def tick() :
-	return int(time.time() * 1000)
 
 class Tick(object) :
 	def __init__(self, trace, value, when_ms, sample_err_allowed, tick_err_allowed_ms) :
@@ -76,7 +74,7 @@ class Trace(object) :
 		Must tolerate tick_error_tolerate ms of drift.
 		"""
 
-		now_ms = tick()
+		now_ms = events.tick()
 
 		# when the last measurement should be, if we've had no timing or restart problems
 		end_low = now_ms - self.tick_err_allowed_ms - self.tick_ms
