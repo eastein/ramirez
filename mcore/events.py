@@ -63,6 +63,10 @@ class Processor :
 			# now we will handle the event.
 			next_event.handle()
 
+class Processable(object) :
+	def __init__(self, processor=None) :
+		self.processor = processor
+
 class Event :
 	def __init__(self, ms) :
 		self.ms = ms
@@ -83,3 +87,7 @@ class SampleEvent(Event) :
 
 	def __repr__(self) :
 		return Event.__repr__(self, ' sensor=%s' % self.sensor)
+
+	def handle(self) :
+		print 'sampling %s' % self.sensor
+		self.sensor.sample()

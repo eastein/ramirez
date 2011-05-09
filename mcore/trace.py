@@ -91,13 +91,15 @@ class Trace(object) :
 			create = create or tick_err_allowed_ms != self.tick_err_allowed_ms
 			create = create or sample_err_allowed != self.sample_err_allowed
 			create = create or value > sample + sample_err_allowed or value < sample - sample_err_allowed
-
-		if create :
-			self.cursor.execute('insert into samples (start_ms,end_ms,tick_ms,tick_err_allowed_ms,sample,sample_err_allowed) values (?,?,?,?,?,?)', (now_ms, now_ms, self.tick_ms, self.tick_err_allowed_ms, value, self.sample_err_allowed))
-		else :
-			self.cursor.execute('update samples set end_ms = ? where id = ?', (end_ms + tick_ms, id))
-
-		self.conn.commit()
+		try :
+			if create :
+				self.cursor.execute('insert into samples (start_ms,end_ms,tick_ms,tick_err_allowed_ms,sample,sample_err_allowed) values (?,?,?,?,?,?)', (now_ms, now_ms, self.tick_ms, self.tick_err_allowed_ms, value, self.sample_err_allowed))
+				return Tick(self, value, now_ms, self.sample_err_allowed, self.tick_err_allowed_ms)
+			else :
+				self.cursor.execute('update samples set end_ms = ? where id = ?', (end_ms + tick_ms, id))
+				return Tick(self, value, end_ms + tick_ms, self.sample_err_allowed, self.tick_err_allowed_ms)
+		finally :
+			self.conn.commit()
 
 	def read(self, time_ms) :
 		self.waitsetup()
