@@ -1,10 +1,13 @@
 import os
 import os.path
 import time
+import random
 
 """
 This module is for classes useful for acquiring sensor data of boolean or numeric value.
 It does not cover specific sensor types or any history recording or history lookup functionality.
+
+That functionality is provided by the mcore.trace module.
 """
 
 class Sensor(object) :

@@ -54,13 +54,13 @@ class Trace(object) :
 		try :
 			i = self.cursor.execute('select count(*) from samples')
 		except sqlite.OperationalError :
-			self.create_tables()
+			self._create_tables()
 			self.conn.commit()
 
 	def __repr__(self) :
 		return 'Trace<%s>' % self.name
 
-	def create_tables(self) :
+	def _create_tables(self) :
 		self.cursor.execute('create table samples (id integer primary key autoincrement, start_ms integer, end_ms integer, tick_ms integer, tick_err_allowed_ms integer, sample integer, sample_err_allowed integer)')
 		self.cursor.execute('create index samples_start_ms on samples(start_ms)')
 		self.cursor.execute('create index samples_end_ms on samples(end_ms)')

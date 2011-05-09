@@ -16,7 +16,7 @@ class Ramirez(object) :
 		self.sensors = []
 		self.readConfiguration()
 		self.actOnConfiguration()
-		self.data_dir = None
+		self.data_dir = os.path.join(os.path.expanduser("~"), '.ramirez', 'data')
 
 	def readConfiguration(self) :
 		self.configuration = ConfigParser.ConfigParser()
