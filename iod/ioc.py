@@ -8,6 +8,7 @@ import sys
 import tty
 
 def request(msg) :
+	start = time.time()
 	tcp_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	tcp_sock.connect(('127.0.0.1', 7823))
 	iod_proto.write_message(tcp_sock, msg)
@@ -15,6 +16,7 @@ def request(msg) :
 	pprint.pprint(iod_proto.read_message(tcp_sock))
 	print '<<< response'
 	tcp_sock.close()
+	print 'req/rep in %0.4f sec' % (time.time() - start)
 
 if __name__ == '__main__' :
 	request({iod_proto.SLOT_OP : iod_proto.OP_RESET})

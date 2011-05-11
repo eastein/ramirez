@@ -110,6 +110,10 @@ class IOD(SocketServer.TCPServer) :
 			if not self.setup :
 				return {iod_proto.SLOT_STATUS : iod_proto.STATUS_FAIL}
 			for channel, value in arg :
+				if not isinstance(self.channels[channel], DigitalOutputChannel) :
+					return {iod_proto.SLOT_STATUS : iod_proto.STATUS_FAIL}
+
+			for channel, value in arg :
 				value = bool(value)
 				print 'attempting to set %s = %s' % (channel, str(value))
 				
@@ -126,9 +130,7 @@ class IOD(SocketServer.TCPServer) :
 			if not self.setup :
 				return {iod_proto.SLOT_STATUS : iod_proto.STATUS_FAIL}
 			for channelid in arg :
-				# TODO keyerror handle
-				# TODO check that all are digital in, they sorta have to be
-				if self.channels[channelid] is None :
+				if not isinstance(self.channels[channelid], DigitalInputChannel) :
 					return {iod_proto.SLOT_STATUS : iod_proto.STATUS_FAIL}
 
 			samples = []
