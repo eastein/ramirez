@@ -7,6 +7,7 @@ import ConfigParser
 
 import mcore.events
 import mcore.sensor
+import iod.iod_proto as proto
 
 SENSORS_DIR = 'sensors'
 
@@ -15,7 +16,10 @@ class Ramirez(object) :
 		self.config = config
 		self.run = run
 		self.pretend = pretend
+
 		self.sensors = []
+		self.dyios = {}
+
 		self.processor = mcore.events.Processor()
 		self.data_dir = os.path.join(os.path.expanduser("~"), '.ramirez', 'data')
 		self.readConfiguration()
@@ -26,7 +30,10 @@ class Ramirez(object) :
 		self.configuration.read(self.config)
 
 	def actOnConfiguration(self) :
-		for name in self.configuration.sections() :
+		section_list = self.configuration.sections()
+		section_list.sort() # this is important: sensors will be after sensors.  FIXME needs to change later when
+		# alphabetical order is no longer very useful for this.
+		for name in section_list :
 			names = name.split('.')
 			if names[0] == 'storage' :
 				try :
@@ -38,21 +45,36 @@ class Ramirez(object) :
 					raise RuntimeError("storage.dir = %s is not a directory." % data_dir)
 
 				self.data_dir = data_dir
+			elif names[0] == 'dyio' :
+				dyio_name = names[1]
+				ip = self.configuration.get(name, 'ip')
+				port = int(self.configuration.get(name, 'port'))
+				self.dyios[dyio_name] = mcore.sensor.DyIO(dyio_name, ip, port)
 			elif names[0] == 'sensor' :
 				sensor_name = names[1]
 				typ = self.configuration.get(name, 'type')
-				source = self.configuration.get(name, 'source')
 				period = int(self.configuration.get(name, 'period'))
 				sopts = {
 					'tms' : period,
 					'tems' : 5000,
-					'se' : 0
+					'se' : 0,
 				}
 				if typ not in mcore.sensor.types :
 					raise RuntimeError("Unknown sensor type=%s for sensor %s" % (typ, name))
-				self.sensors.append(mcore.sensor.types[typ](name, self, sopts, script=os.path.join(SENSORS_DIR, source)))
+
+				if typ == 'boolean-shell' :
+					source = self.configuration.get(name, 'source')
+					self.sensors.append(mcore.sensor.types[typ](name, self, sopts, script=os.path.join(SENSORS_DIR, source)))
+				elif typ == 'boolean-dyio' :
+					dyio = self.dyios[self.configuration.get(name, 'dyio')] # TODO handle error
+					channel = int(self.configuration.get(name, 'channel'))
+					self.sensors.append(mcore.sensor.types[typ](name, self, sopts, dyio, channel))
+				else :
+					pass # TODO error
 			else :
 				raise RuntimeError("Unknown config section %s." % name)
+		for dyio in self.dyios.values() :
+			dyio.hardware_setup()
 	
 	def sampleAll(self) :
 		for sensor in self.sensors :

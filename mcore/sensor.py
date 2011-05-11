@@ -4,6 +4,8 @@ import time
 import random
 import events
 import trace
+import iod.iodclient
+import iod.iod_proto as prot
 
 """
 This module is for classes useful for acquiring sensor data of boolean or numeric value.
@@ -38,9 +40,6 @@ class Sensor(events.Processable) :
 		print 'running next at %d' % nextcall
 		self.schedule(nextcall)
 
-class BooleanSensor(Sensor) :
-	pass
-
 class BooleanShellSensor(Sensor) :
 	def __init__(self, name, ramirez, sampleopts, script) :
 		if not os.path.exists(script) :
@@ -61,6 +60,41 @@ class BooleanShellSensor(Sensor) :
 			status = status / 256
 			return status == 0
 
+class DyIO(object) :
+	def __init__(self, name, ip, port) :
+		self.client = iod.iodclient.IODClient(ip, port)
+		self.registry = {}
+
+	def register(self, chanobj) :
+		if chanobj.chan in self.registry :
+			raise RuntimeError("cannot use the same channel twice.")
+
+		self.registry[chanobj.chan] = chanobj
+
+	def hardware_setup(self) :
+		setupcmd = []
+		for chan in self.registry.keys() :
+			setupcmd.append([chan, self.registry[chan].channeltype])
+
+		self.client.setup(setupcmd)
+
+class DyIOChannel(object) :
+	def __init__(self, dyio, channel, channeltype) :
+		self.chan = channel
+		self.channeltype = channeltype
+			
+class DyIOSensor(Sensor, DyIOChannel) :
+	def __init__(self, name, ramirez, sampleopts, dyio, channel) :
+		DyIOChannel.__init__(self, dyio, channel, prot.CHANNELTYPE_DIGITAL)
+		Sensor.__init__(self, name, ramirez, sampleopts)
+		self.dyio = dyio
+		self.dyio.register(self)
+
+	def perform_sample(self) :
+		c, v = self.dyio.client.sample([self.chan])[0]
+		return v
+
 types = {
-	'boolean-shell' : BooleanShellSensor
+	'boolean-shell' : BooleanShellSensor,
+	'boolean-dyio' : DyIOSensor
 }

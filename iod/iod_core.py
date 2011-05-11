@@ -132,7 +132,7 @@ class IOD(SocketServer.TCPServer) :
 			samples = []
 			for channelid in arg :
 				# TODO time of sample collection in the packet?
-				samples.append((channelid, self.channels[channelid].isHigh()))
+				samples.append((channelid, not self.channels[channelid].isHigh()))
 
 			return {iod_proto.SLOT_STATUS : iod_proto.STATUS_OK, iod_proto.SLOT_DATA : samples}
 		finally :
