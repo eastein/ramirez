@@ -1,4 +1,5 @@
 import simplejson as json
+import time
 import struct
 
 SLOT_OP = 0
@@ -13,6 +14,9 @@ OP_SET = 3
 
 STATUS_OK = 0
 STATUS_FAIL = 1
+
+class IODFailure(Exception) :
+	pass # TODO type hierarchy!
 
 CHANNELTYPE_DIGITAL = 0
 CHANNELTYPE_ANALOG = 1
@@ -36,6 +40,9 @@ def read_bytes(sock, b) :
 		r = sock.recv(rem)
 		bytes += r
 		rem -= len(r)
+		if rem > 0 :
+			# TODO use polling instead
+			time.sleep(0.01)
 	return bytes
 
 def read_message(sock) :
@@ -45,3 +52,10 @@ def read_message(sock) :
 	for k in preproc_message.keys() :
 		message[int(k)] = preproc_message[k]
 	return message
+
+def unwrap_message(message, response=False) :
+	if message[SLOT_STATUS] != STATUS_OK :
+		raise IODFailure
+	if not response :
+		return
+	return message[SLOT_DATA]

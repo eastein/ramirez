@@ -74,7 +74,6 @@ class IOD(SocketServer.TCPServer) :
 			except :
 				pass
 			self.startup_dyio(use_lock=False)
-
 			return {iod_proto.SLOT_STATUS : iod_proto.STATUS_OK}
 		finally :
 			self.dyio_lock.release()
@@ -115,9 +114,6 @@ class IOD(SocketServer.TCPServer) :
 
 			for channel, value in arg :
 				value = bool(value)
-				print 'attempting to set %s = %s' % (channel, str(value))
-				
-				# TODO check that all are digital out, they sorta have to be
 				self.channels[channel].setHigh(value)
 
 			return {iod_proto.SLOT_STATUS : iod_proto.STATUS_OK}
