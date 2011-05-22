@@ -101,21 +101,36 @@ class Trace(object) :
 		finally :
 			self.conn.commit()
 
-	def read(self, time_ms) :
+	def read(self, time_ms, end_time_ms=None) :
 		self.waitsetup()
-		return self.executor.submit(self._read, time_ms)
+		return self.executor.submit(self._read, time_ms, end_time_ms)
 
-	def _read(self, time_ms) :
-		sample = self.cursor.execute('select start_ms,end_ms,tick_ms,tick_err_allowed_ms,sample,sample_err_allowed from samples where start_ms=(select max(start_ms) from samples where start_ms <= ?)', (time_ms,)).fetchall()
+	def _read(self, time_ms, end_time_ms=None) :
+		rq = end_time_ms is not None
+		if not rq :
+			end_time_ms = time_ms
+
+		sample = self.cursor.execute('select start_ms,end_ms,tick_ms,tick_err_allowed_ms,sample,sample_err_allowed from samples where start_ms>=(select max(start_ms) from samples where start_ms <= ?) and start_ms <= ?', (time_ms,end_time_ms)).fetchall()
 		if not sample :
-			return None
-		sample = sample[0]
+			if rq :
+				return []
+			else :
+				return None
 
-		start_ms,end_ms,tick_ms,tick_err_allowed_ms,sample,sample_err_allowed = sample
+		# TODO validity length of sample (end_ms?) should be included in returned Measurement.
+		if not rq :
+			sample = sample[0]
+			start_ms,end_ms,tick_ms,tick_err_allowed_ms,sample,sample_err_allowed = sample
 
-		if time_ms > end_ms + tick_ms :
-			return None
+			if time_ms > end_ms + tick_ms :
+				return None
 
-		when_ms = time_ms - ((time_ms - start_ms) % tick_ms)
+			when_ms = time_ms - ((time_ms - start_ms) % tick_ms)
 
-		return Tick(self, sample, when_ms, sample_err_allowed, tick_err_allowed_ms)
+			return Tick(self, sample, when_ms, sample_err_allowed, tick_err_allowed_ms)
+		else :
+			r = []
+			for s in sample :
+				start_ms,end_ms,tick_ms,tick_err_allowed_ms,value,sample_err_allowed = s
+				r.append(Tick(self, value, start_ms, sample_err_allowed, tick_err_allowed_ms))
+			return r
