@@ -15,15 +15,19 @@ def fupack(t) :
 	return a
 
 class Tick(object) :
-	def __init__(self, trace, value, when_ms, sample_err_allowed, tick_err_allowed_ms) :
+	def __init__(self, trace, value, start_ms, end_ms, tick_ms, sample_err_allowed, tick_err_allowed_ms) :
 		self.trace = trace
 		self.value = value
-		self.when_ms = when_ms
+		self.start_ms = start_ms
+		self.end_ms = end_ms
+		self.tick_ms = tick_ms
 		self.sample_err_allowed = sample_err_allowed
 		self.tick_err_allowed_ms = tick_err_allowed_ms
 
 	def __repr__(self) :
-		return 'Tick<of=%s, value=%d, when=%s UTC, s_err=%d, t_err=%d>' % (self.trace, self.value, time.asctime(time.gmtime(self.when_ms / 1000)), self.sample_err_allowed, self.tick_err_allowed_ms)
+		asc_start = time.asctime(time.gmtime(self.start_ms / 1000))
+		asc_end = time.asctime(time.gmtime((self.end_ms + self.tick_ms) / 1000))
+		return 'Tick<of=%s, v=%d, f=%s UTC, t=%s UTC, tick=%d s_err=%d, t_err=%d>' % (self.trace, self.value, asc_start, asc_end, self.tick_ms, self.sample_err_allowed, self.tick_err_allowed_ms)
 
 class Trace(object) :
 	'''
@@ -58,7 +62,7 @@ class Trace(object) :
 			self.conn.commit()
 
 	def __repr__(self) :
-		return 'Trace<%s>' % self.name
+		return self.name
 
 	def _create_tables(self) :
 		self.cursor.execute('create table samples (id integer primary key autoincrement, start_ms integer, end_ms integer, tick_ms integer, tick_err_allowed_ms integer, sample integer, sample_err_allowed integer)')
@@ -94,11 +98,11 @@ class Trace(object) :
 		try :
 			if create :
 				self.cursor.execute('insert into samples (start_ms,end_ms,tick_ms,tick_err_allowed_ms,sample,sample_err_allowed) values (?,?,?,?,?,?)', (now_ms, now_ms, self.tick_ms, self.tick_err_allowed_ms, value, self.sample_err_allowed))
-				return Tick(self, value, now_ms, self.sample_err_allowed, self.tick_err_allowed_ms)
+				return Tick(self, value, now_ms, now_ms, self.tick_ms, self.sample_err_allowed, self.tick_err_allowed_ms)
 			else :
 				at_ms = end_ms + tick_ms
 				self.cursor.execute('update samples set end_ms = ? where id = ?', (at_ms, id))
-				return Tick(self, value, at_ms, self.sample_err_allowed, self.tick_err_allowed_ms)
+				return Tick(self, value, start_ms, at_ms, self.tick_ms, self.sample_err_allowed, self.tick_err_allowed_ms)
 		finally :
 			self.conn.commit()
 
@@ -118,7 +122,6 @@ class Trace(object) :
 			else :
 				return None
 
-		# TODO validity length of sample (end_ms?) should be included in returned Measurement.
 		if not rq :
 			sample = sample[0]
 			start_ms,end_ms,tick_ms,tick_err_allowed_ms,sample,sample_err_allowed = sample
@@ -126,12 +129,10 @@ class Trace(object) :
 			if time_ms > end_ms + tick_ms :
 				return None
 
-			when_ms = time_ms - ((time_ms - start_ms) % tick_ms)
-
-			return Tick(self, sample, when_ms, sample_err_allowed, tick_err_allowed_ms)
+			return Tick(self, sample, start_ms, end_ms, tick_ms, sample_err_allowed, tick_err_allowed_ms)
 		else :
 			r = []
 			for s in sample :
 				start_ms,end_ms,tick_ms,tick_err_allowed_ms,value,sample_err_allowed = s
-				r.append(Tick(self, value, start_ms, sample_err_allowed, tick_err_allowed_ms))
+				r.append(Tick(self, value, start_ms, end_ms, tick_ms, sample_err_allowed, tick_err_allowed_ms))
 			return r
