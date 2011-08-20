@@ -96,8 +96,9 @@ class Trace(object) :
 				self.cursor.execute('insert into samples (start_ms,end_ms,tick_ms,tick_err_allowed_ms,sample,sample_err_allowed) values (?,?,?,?,?,?)', (now_ms, now_ms, self.tick_ms, self.tick_err_allowed_ms, value, self.sample_err_allowed))
 				return Tick(self, value, now_ms, self.sample_err_allowed, self.tick_err_allowed_ms)
 			else :
-				self.cursor.execute('update samples set end_ms = ? where id = ?', (end_ms + tick_ms, id))
-				return Tick(self, value, end_ms + tick_ms, self.sample_err_allowed, self.tick_err_allowed_ms)
+				at_ms = end_ms + tick_ms
+				self.cursor.execute('update samples set end_ms = ? where id = ?', (at_ms, id))
+				return Tick(self, value, at_ms, self.sample_err_allowed, self.tick_err_allowed_ms)
 		finally :
 			self.conn.commit()
 
