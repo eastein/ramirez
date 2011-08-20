@@ -115,7 +115,7 @@ class Trace(object) :
 		if not rq :
 			end_time_ms = time_ms
 
-		sample = self.cursor.execute('select start_ms,end_ms,tick_ms,tick_err_allowed_ms,sample,sample_err_allowed from samples where start_ms>=(select max(start_ms) from samples where start_ms <= ?) and start_ms <= ?', (time_ms,end_time_ms)).fetchall()
+		sample = self.cursor.execute('select start_ms,end_ms,tick_ms,tick_err_allowed_ms,sample,sample_err_allowed from samples where start_ms>=(select min(t) from (select max(start_ms) t from samples where start_ms <= ? union select min(start_ms) t from samples where start_ms >= ?)) and start_ms <= ?', (time_ms,time_ms,end_time_ms)).fetchall()
 		if not sample :
 			if rq :
 				return []
@@ -134,5 +134,7 @@ class Trace(object) :
 			r = []
 			for s in sample :
 				start_ms,end_ms,tick_ms,tick_err_allowed_ms,value,sample_err_allowed = s
+				if time_ms > end_ms + tick_ms :
+					continue
 				r.append(Tick(self, value, start_ms, end_ms, tick_ms, sample_err_allowed, tick_err_allowed_ms))
 			return r
