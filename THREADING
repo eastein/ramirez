@@ -20,6 +20,10 @@ Each trace keeps its own tiny pool because that's how SQLite likes to operate, a
 
 Items that read and write and need measurements do this by working with futures.  All threadpools (probably) are from concurrent.futures module, so this is natural.  If a result is expected, then a future is used to get it.  I may need to do something else for the event handlers, as I believe their main method of reaction is to either do actions themselves (thus not using the return) or to create new events for other handlers to handle (thus not using the return).
 
+Available from google code:
+	http://code.google.com/p/pythonfutures/
+Also available from easy_install as 'futures'
+
 # Event Handling Shutdown
 
 If anything other than timer events are still active, we've got a problem.  I may end up using someone else's event library if that works out well requirements wise; perhaps libev's python bindings.  Sometimes an action must be taken reliably, and potentially the work pool could get behind.
