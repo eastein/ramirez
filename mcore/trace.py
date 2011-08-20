@@ -24,6 +24,17 @@ class Tick(object) :
 		self.sample_err_allowed = sample_err_allowed
 		self.tick_err_allowed_ms = tick_err_allowed_ms
 
+	@property
+	def asdict(self) :
+		return {
+			'value' : self.value,
+			'start_ms' : self.start_ms,
+			'end_ms' : self.end_ms,
+			'tick_ms' : self.tick_ms,
+			'sample_err' : self.sample_err_allowed,
+			'tick_err' : self.tick_err_allowed_ms
+		}
+
 	def __repr__(self) :
 		asc_start = time.asctime(time.gmtime(self.start_ms / 1000))
 		asc_end = time.asctime(time.gmtime((self.end_ms + self.tick_ms) / 1000))
