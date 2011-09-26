@@ -82,6 +82,7 @@ class Trace(object) :
 
 	def write(self, value) :
 		self.waitsetup()
+		# TODO find a way to prioritize various ThreadPoolExecutor tasks, write is more important than read in most situations
 		return self.executor.submit(self._write, value)
 
 	def _write(self, value) :
