@@ -63,7 +63,8 @@ class Trace(object) :
 			futures.wait([self._setup])
 
 	def _connection_setup(self, dbfilename) :
-		self.conn = sqlite.connect(dbfilename)
+		self.conn = sqlite.connect(dbfilename, timeout=30)
+		self.conn.isolation_level = "DEFERRED"
 		self.cursor = self.conn.cursor()
 
 		try :
