@@ -8,7 +8,11 @@ License: GPL2/GPL3, at your option.  For details see LICENSE.
 import time
 import events
 import concurrent.futures as futures
-import pysqlite2.dbapi2 as sqlite
+
+try :
+	import sqlite3 as sqlite
+except ImportError :
+	import pysqlite2.dbapi2 as sqlite
 
 def fupack(t) :
 	(a, ) = t
