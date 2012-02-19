@@ -80,15 +80,14 @@ class IOD(SocketServer.TCPServer) :
 	def op_setup(self, arg) :
 		self.dyio_lock.acquire()
 		try :
-			if self.setup is not False :
-				# TODO define code to include error type codes, apply it to all instances of STATUS_FAIL
-				return {iod_proto.SLOT_STATUS : iod_proto.STATUS_FAIL}
-
 			setup = set()
 			for channel, channeltype in arg :
 				if channel in setup :
 					return {iod_proto.SLOT_STATUS : iod_proto.STATUS_FAIL}
 				
+				if self.channels[channel] is not None :
+					continue
+
 				if channeltype == iod_proto.CHANNELTYPE_DIGITAL :
 					self.channels[channel] = DigitalInputChannel(self.dyio.getChannel(channel))
 				elif channeltype == iod_proto.CHANNELTYPE_ANALOG :
