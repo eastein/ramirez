@@ -8,8 +8,7 @@ import threading
 import iod_proto
 
 from com.neuronrobotics.sdk.dyio import DyIO
-from com.neuronrobotics.sdk.dyio.peripherals import DigitalInputChannel
-from com.neuronrobotics.sdk.dyio.peripherals import DigitalOutputChannel
+from com.neuronrobotics.sdk.dyio.peripherals import DigitalInputChannel, AnalogInputChannel, DigitalOutputChannel
 from com.neuronrobotics.sdk.serial import SerialConnection
 
 # TODO handle com.neuronrobotics.sdk.common.NoConnectionAvailableException and re-setup with last preferences and output levels? Unsure.
@@ -93,7 +92,7 @@ class IOD(SocketServer.TCPServer) :
 				if channeltype == iod_proto.CHANNELTYPE_DIGITAL :
 					self.channels[channel] = DigitalInputChannel(self.dyio.getChannel(channel))
 				elif channeltype == iod_proto.CHANNELTYPE_ANALOG :
-					return {iod_proto.SLOT_STATUS : iod_proto.STATUS_FAIL}
+					self.channels[channel] = AnalogInputChannel(self.dyio.getChannel(channel))
 				elif channeltype == iod_proto.CHANNELTYPE_DIGITALOUT :
 					self.channels[channel] = DigitalOutputChannel(self.dyio.getChannel(channel))
 			
@@ -125,14 +124,24 @@ class IOD(SocketServer.TCPServer) :
 		try :
 			if not self.setup :
 				return {iod_proto.SLOT_STATUS : iod_proto.STATUS_FAIL}
+
 			for channelid in arg :
-				if not isinstance(self.channels[channelid], DigitalInputChannel) :
-					return {iod_proto.SLOT_STATUS : iod_proto.STATUS_FAIL}
+				if isinstance(self.channels[channelid], DigitalInputChannel) :
+					continue
+				if isinstance(self.channels[channelid], AnalogInputChannel) :
+					continue
+
+				return {iod_proto.SLOT_STATUS : iod_proto.STATUS_FAIL}
 
 			samples = []
+
 			for channelid in arg :
-				# TODO time of sample collection in the packet?
-				samples.append((channelid, not self.channels[channelid].isHigh()))
+				if isinstance(self.channels[channelid], DigitalInputChannel) :
+					v = not self.channels[channelid].isHigh()
+				if isinstance(self.channels[channelid], AnalogInputChannel) :
+					v = self.channels[channelid].getVoltage()
+
+				samples.append((channelid, v))
 
 			return {iod_proto.SLOT_STATUS : iod_proto.STATUS_OK, iod_proto.SLOT_DATA : samples}
 		finally :
